@@ -13,7 +13,7 @@ struct AppDefaultSettings {
     // MARK: - API
     
     let baseURL: String = "http://api.openweathermap.org/data/2.5/"
-    let appId: String = "9d03bbae3f696b721505542d741588b9" // whether api key
+    let appId: String = "<your-api-key>" // whether api key
     let successHttpStatusCodes = 200...299
     
     // MARK: - Debug
