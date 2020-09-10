@@ -61,7 +61,7 @@ private extension WeatherView {
     }
     
     var indicatorsView: some View {
-        IndicatorsView(types: .constant(viewModel.indicatorTypes))
+        IndicatorsView(types: viewModel.indicatorTypes)
             .frame(height: .indicatorViewHeight)
     }
     

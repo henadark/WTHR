@@ -10,14 +10,14 @@ import SwiftUI
 
 struct IndicatorRowView: View {
     
-    @Binding var type: IndicatorType
+    let type: IndicatorType
     
     var body: some View {
         ZStack {
             Capsule()
                 .fill(indicatorColor)
             VStack {
-                ProgressIndicatorView(type: $type)
+                ProgressIndicatorView(type: type)
                 indicatorTextValue
                 Text(type.name)
                     .lightFootnoteTextStyle()
@@ -58,6 +58,6 @@ private extension IndicatorRowView {
 
 struct IndicatorRowView_Previews: PreviewProvider {
     static var previews: some View {
-        IndicatorRowView(type: .constant(.humidity(67))).frame(width: 116, height: 170)
+        IndicatorRowView(type: .humidity(67)).frame(width: 116, height: 170)
     }
 }

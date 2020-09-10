@@ -16,15 +16,15 @@ struct CapsuleGraphView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             VerticalLine()
-                .stroke(Color.grayLine, style: .dashLineStyle(size: self.size))
+                .stroke(Color.grayLine, style: .dashLineStyle(size: size))
             VStack {
-                Text(self.data.valueDescription)
+                Text(data.valueDescription)
                     .darkCaptionTextStyle()
                     .minimumScaleFactor(0.1)
                 Capsule()
-                    .fill(Color(temperature: self.data.value.int))
-                    .frame(width: self.size.width * .capsuleGraphhWidthScale,
-                           height: self.capsuleHeight(self.size.height))
+                    .fill(Color(temperature: data.value.int))
+                    .frame(width: size.width * .capsuleGraphhWidthScale,
+                           height: capsuleHeight(size.height))
             } // VStack
             .animation(.easeInOut(duration: .defaultAnimationDuration))
         } // ZStack

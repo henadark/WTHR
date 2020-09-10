@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ProgressLineView: View {
     
-    @Binding var indicatorType: IndicatorType
+    let indicatorType: IndicatorType
     
     var body: some View {
         ZStack {
@@ -38,6 +38,6 @@ private extension ProgressLineView {
 
 struct ProgressLineView_Previews: PreviewProvider {
     static var previews: some View {
-        ProgressLineView(indicatorType: .constant(.humidity(67))).background(Color.green)
+        ProgressLineView(indicatorType: .humidity(67)).background(Color.green)
     }
 }
