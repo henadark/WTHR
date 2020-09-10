@@ -13,10 +13,10 @@ final class WeatherService {
     
     // MARK: Stored Properties
     
-    let settings: AppSettingsServiceProtocol
-    let apiService: APIServiceProtocol
-    let dataBaseService: DataBaseServiceProtocol
-    var cancellableSet: Set<AnyCancellable> = []
+    private let settings: AppSettingsServiceProtocol
+    private let apiService: APIServiceProtocol
+    private let dataBaseService: DataBaseServiceProtocol
+    private var cancellableSet: Set<AnyCancellable> = []
     @Published private var currentCitiesWeather = [CurrentWeather]()
     @Published private var dailyWeatherForecasts = [DailyForecast]()
     
@@ -56,23 +56,11 @@ extension WeatherService: WeatherServiceProtocol {
     
     func currentWeather(for city: String) -> AnyPublisher<CurrentWeather, Error> {
         let weatherParams = WeatherParams(city: city, temperatureFormat: settings.temperatureFormat)
-        let publisher = apiService.currentWeather(with: weatherParams)
-        let future = Future<CurrentWeather, Error> { [unowned self] promise in
-            return publisher.receive(on: DispatchQueue.main).sink(receiveCompletion: { (someError) in
-                if case let .failure(error) = someError {
-                    promise(.failure(error))
-                }
-            }) { (weather) in
-                promise(.success(weather))
-            }
-            .store(in: &self.cancellableSet)
-        }
-        .eraseToAnyPublisher()
-        return future
+        return apiService.currentWeather(with: weatherParams)
     }
     
     func fetchCurrentWeatherAndForecsts(for cityIds: [Int], count days: Int) -> AnyPublisher<Void, Error> {
-        let publisherForecast = fetchWeatherForecasts(for: cityIds, count: days)
+        let publisherForecast = publisherOfWeatherForecasts(for: cityIds, count: days)
         let publisherCurrentWeather = currentWeather(for: cityIds)
         let future = Future<Void, Error> { [unowned self] promise in
             Publishers.Zip(publisherCurrentWeather, publisherForecast)
@@ -95,8 +83,8 @@ extension WeatherService: WeatherServiceProtocol {
     }
     
     func appendCurrentWeather(_ currentWeather: CurrentWeather) {
-        guard let cityID = currentWeather.city.id else { return }
-        fetchWeatherForecasts(for: [cityID], count: settings.forecastCountDays)
+        guard let cityID = currentWeather.city.id, currentCitiesWeather.first(where: { $0.city.id == cityID }) == nil else { return }
+        publisherOfWeatherForecasts(for: [cityID], count: settings.forecastCountDays)
             .sink(receiveCompletion: { _ in }) { [unowned self]  (dailyForecasts) in
                 guard let forecast = dailyForecasts.first else { return }
                 self.currentCitiesWeather.append(currentWeather)
@@ -120,55 +108,12 @@ private extension WeatherService {
     
     func currentWeather(for cityIds: [Int]) -> AnyPublisher<[CurrentWeather], Error> {
         let weatherParams = WeatherCitiesParams(cityIds: cityIds, temperatureFormat: settings.temperatureFormat)
-        let publisher = apiService.currentCitiesWeather(with: weatherParams)
-        let future = Future<[CurrentWeather], Error> { [unowned self] promise in
-            return publisher.receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { (someError) in
-                if case let .failure(error) = someError {
-                    promise(.failure(error))
-                }
-                
-            }) { (weathers) in
-                promise(.success(weathers))
-            }
-            .store(in: &self.cancellableSet)
-        }
-        .eraseToAnyPublisher()
-        return future
+        return apiService.currentCitiesWeather(with: weatherParams)
     }
     
     func weatherForecast(for cityId: Int, count: Int) -> AnyPublisher<DailyForecast, Error> {
-        let weatherParams = WeatherCitiesParams(cityIds: [cityId], temperatureFormat: settings.temperatureFormat, count: count)
-        let publisher = apiService.weatherForecast(with: weatherParams)
-        let future = Future<DailyForecast, Error> { [unowned self] promise in
-            return publisher.receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { (someError) in
-                if case let .failure(error) = someError {
-                    promise(.failure(error))
-                }
-            }) { (dailyForecast) in
-                promise(.success(dailyForecast))
-            }
-            .store(in: &self.cancellableSet)
-        }
-        .eraseToAnyPublisher()
-        return future
-    }
-          
-    func fetchWeatherForecasts(for cityIds: [Int], count: Int) -> AnyPublisher<[DailyForecast], Error> {
-        let publisher = publisherOfWeatherForecasts(for: cityIds, count: count)
-        let future = Future<[DailyForecast], Error> { [unowned self] promise in
-            return publisher.receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { (completion) in
-                if case let .failure(error) = completion {
-                    promise(.failure(error))
-                }
-            }) { (dailyForecasts) in
-                promise(.success(dailyForecasts))
-            }
-            .store(in: &self.cancellableSet)
-        }.eraseToAnyPublisher()
-        return future
+        let weatherParams = DailyForecastParams(cityId: cityId, temperatureFormat: settings.temperatureFormat, count: count)
+        return apiService.weatherForecast(with: weatherParams)
     }
     
     func publisherOfWeatherForecasts(for cityIds: [Int], count: Int) -> AnyPublisher<[DailyForecast], Error> {
