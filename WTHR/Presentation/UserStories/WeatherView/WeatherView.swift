@@ -20,12 +20,9 @@ struct WeatherView: View {
                 searchCitySection
                 pageView
                 if viewModel.weatherIsLoaded {
-                    IndicatorsView(types: .constant(viewModel.indicatorTypes))
-                        .frame(height: .indicatorViewHeight)
+                    indicatorsView
                     Spacer()
-                    TemperatureChartView(datas: viewModel.capsuleGraphDatas, selectedSection: $viewModel.selectedSectionPeriod, onTapAtIndex: onTapGrahpAtIndex)
-                        .frame(height: .temperatureViewHeight)
-                        .padding()
+                    temperatureChartView
                     NavigationLink(destination: weatherDetailView, isActive: $viewModel.showWeatherDetailView) {
                         EmptyView()
                     }
@@ -61,6 +58,19 @@ private extension WeatherView {
               id: \.city,
               content: WeatherCard.init(data:))
             .aspectRatio(.pagerViewAspectRatio, contentMode: .fit)
+    }
+    
+    var indicatorsView: some View {
+        IndicatorsView(types: .constant(viewModel.indicatorTypes))
+            .frame(height: .indicatorViewHeight)
+    }
+    
+    var temperatureChartView: some View {
+        TemperatureChartView(datas: viewModel.capsuleGraphDatas,
+                             selectedSection: $viewModel.selectedSectionPeriod,
+                             onTapAtIndex: onTapGrahpAtIndex)
+            .frame(height: .temperatureViewHeight)
+            .padding()
     }
     
     var weatherDetailView: some View {
